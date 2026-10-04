@@ -94,21 +94,27 @@
   --gutter: clamp(16px, 4vw, 56px);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* Небо меняется двумя путями. Фон (слои в .sky и подложка шапки) — плавно за прокруткой:
+     скрипт пишет --sky прямо на эти несколько элементов. Цвета текста и карточек — один раз,
+     на середине перехода (класс .day на html), с короткой анимацией. Раньше --sky на html
+     менялся каждый кадр, и телефон пересчитывал стили всей страницы — прокрутка шла рывками. */
   --sky: 0;
+  transition: --sky 0.4s ease;
   --bg: color-mix(in oklab, var(--day) calc(var(--sky) * 100%), var(--night));
   --fg: color-mix(in oklab, var(--ink-day) calc(var(--sky) * 100%), var(--ink-night));
   --muted: color-mix(in oklab, var(--muted-day) calc(var(--sky) * 100%), var(--muted-night));
   --line: color-mix(in oklab, rgba(11, 12, 14, 0.12) calc(var(--sky) * 100%), rgba(242, 244, 247, 0.14));
-  --grid: color-mix(in oklab, rgba(11, 12, 14, 0.06) calc(var(--sky) * 100%), rgba(242, 244, 247, 0.035));
   --bubble: color-mix(in oklab, #ffffff calc(var(--sky) * 100%), #1b1d21);
   color-scheme: dark;
 }
+:root.day { --sky: 1; color-scheme: light; }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { background: var(--bg); overflow-x: clip; scrollbar-width: none; }
+/* под всем — ночь; день — слой .sky__day поверх неё (см. .sky) */
+html { background: var(--night); overflow-x: clip; scrollbar-width: none; }
 html::-webkit-scrollbar { display: none; } /* полоса прокрутки скрыта: листается страница как обычно */
 body {
-  margin: 0; background: var(--bg); color: var(--fg);
+  margin: 0; background: var(--night); color: var(--fg);
   font: 400 17px/1.5 var(--font-body);
   -webkit-font-smoothing: antialiased; overflow-x: clip;
 }
@@ -123,8 +129,13 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 [hidden] { display: none !important; }
 .sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+/* Небо за страницей: свой --sky (его пишет скрипт), поэтому слои меняются плавно,
+   а пересчитывается только этот десяток элементов. День — светлый слой поверх ночи. */
+.sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.sky__day { position: fixed; inset: 0; background: var(--day); opacity: var(--sky); }
 /* тетрадь в клетку: проступает днём, к краям растворяется */
 .paper {
+  --grid: color-mix(in oklab, rgba(11, 12, 14, 0.06) calc(var(--sky) * 100%), rgba(242, 244, 247, 0.035));
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -180,6 +191,19 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   padding: calc(env(safe-area-inset-top, 0px) + 18px) var(--gutter) 18px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
+/* Подложка под шапкой (и часами на телефоне): текст, уехавший наверх, растворяется в небе,
+   а не налезает на кнопку и часы. Цвет — как у неба в эту секунду (--sky пишет скрипт).
+   Включается там, где под шапку уезжает текст; в закреплённых сценах и на первом экране её нет. */
+.scrim {
+  --c: color-mix(in oklab, var(--day) calc(var(--sky) * 100%), var(--night));
+  position: fixed; left: 0; right: 0; top: 0; z-index: 15; pointer-events: none;
+  height: calc(env(safe-area-inset-top, 0px) + 100px);
+  background: linear-gradient(var(--c) 0%, var(--c) 52%, transparent);
+  opacity: 0; transition: opacity 0.35s ease;
+}
+.scrim.on { opacity: 1; }
+/* на телефоне под ней и строка часов: сплошная часть заканчивается ниже часов */
+@media (max-width: 900px) { .scrim { height: calc(env(safe-area-inset-top, 0px) + 128px); background: linear-gradient(var(--c) 0%, var(--c) 80%, transparent); } }
 /* надпись лежит на светящейся волне — тень держит её читаемой */
 .brand { display: inline-flex; align-items: center; gap: 10px; font: 500 20px/1 var(--font-display); letter-spacing: -0.02em; text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55); }
 .brand img {
@@ -271,7 +295,7 @@ main { position: relative; z-index: 1; }
 .cap__note { margin: 14px 0 0; max-width: 30ch; font: 400 15px/1.45 var(--font-body); letter-spacing: 0; color: var(--muted); text-wrap: pretty; }
 @media (max-width: 900px) {
   .cap { top: calc(env(safe-area-inset-top, 0px) + 112px); bottom: auto; display: block; right: var(--gutter); max-width: none; font-size: clamp(22px, 6vw, 30px); }
-  .cap__note { font-size: 13.5px; margin-top: 8px; }
+  .cap__note { font-size: 13.5px; margin-top: 8px; max-width: 46ch; }
 }
 /* на низком телефоне пояснение наезжало на телефон в сцене — остаётся только заголовок */
 @media (max-width: 900px) and (max-height: 720px) { .cap__note { display: none; } }
@@ -498,6 +522,8 @@ main { position: relative; z-index: 1; }
   animation: ping 1.8s var(--ease) infinite; pointer-events: none;
 }
 @keyframes ping { 0% { opacity: 0.9; transform: scale(0.96); } 100% { opacity: 0; transform: scale(1.14); } }
+/* бесконечные кольца и курсор — только у телефона на экране (класс ставит скрипт) */
+.phone.idle .ping::after, .phone.idle .caret { animation: none; }
 
 .app .segmented { display: flex; gap: 5px; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--fill-2); }
 .app .segmented span { flex: 1; text-align: center; padding: 11px 4px; border-radius: 999px; color: var(--muted); font-size: 13px; font-weight: 650; }
@@ -526,7 +552,8 @@ main { position: relative; z-index: 1; }
 .app .day-off { background: repeating-linear-gradient(135deg, var(--fill-1) 0 5px, var(--fill-3) 5px 9px); color: var(--muted); }
 .app .day-off.day-on { background: var(--chrome-grad); color: var(--on-accent); }
 .app .day-list { display: grid; gap: 14px; }
-.app .day-list > * { animation: card-in 0.42s var(--ease) both; }
+/* backwards, не both: доиграв, анимация отпускает карточку — иначе браузер держит под каждую свой слой */
+.app .day-list > * { animation: card-in 0.42s var(--ease) backwards; }
 .app .day-list > :nth-child(2) { animation-delay: 0.05s; } .app .day-list > :nth-child(3) { animation-delay: 0.1s; } .app .day-list > :nth-child(4) { animation-delay: 0.15s; }
 @keyframes card-in { from { opacity: 0; transform: translateY(14px); } }
 .app .quiet-row { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 42px; color: var(--muted); font-size: 14px; font-weight: 650; }
@@ -624,7 +651,7 @@ main { position: relative; z-index: 1; }
 .app .push-top time { color: var(--muted); font-size: 13px; }
 .app .flash { animation: flash 0.7s var(--ease); }
 @keyframes flash { 0% { transform: scale(1); } 35% { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(255, 138, 61, 0.45); } 100% { transform: scale(1); } }
-.app .pop { animation: pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+.app .pop { animation: pop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) backwards; }
 @keyframes pop { from { opacity: 0; transform: scale(0.6); } }
 
 /* Telegram: список чатов до Lessa */
@@ -664,7 +691,10 @@ main .reveal { will-change: transform; }
 }
 .bubble small { display: block; margin-bottom: 3px; font: 500 11px/1.2 var(--font-display); letter-spacing: 0.04em; color: var(--sun); }
 @media (max-width: 900px) {
-  .bubble { font-size: 12.5px; padding: 9px 11px 8px; max-width: 44vw; }
+  /* на телефоне сбоку от телефона места нет: облачка в две колонки целиком в экране, поверх телефона */
+  .bubbles { z-index: 3; }
+  /* ширина — по тексту, а не по месту до края экрана: иначе правая колонка сжималась в столбик */
+  .bubble { width: max-content; font-size: 12.5px; padding: 9px 11px 8px; max-width: min(44vw, 170px); }
   .bubble:nth-child(n + 9) { display: none; }
 }
 
@@ -735,7 +765,8 @@ main .reveal { will-change: transform; }
 .cap--17 { bottom: 40%; max-width: 14ch; }
 .stage--17 .phone { left: 64%; }
 @media (max-width: 900px) {
-  .cap--17 { top: calc(env(safe-area-inset-top, 0px) + 112px); bottom: auto; }
+  /* на телефоне подпись во всю ширину: в узкой колонке она шла в три строки и упиралась в телефон */
+  .cap--17 { top: calc(env(safe-area-inset-top, 0px) + 112px); bottom: auto; max-width: none; }
   .count { display: none; }
   .stage--17 .phone { left: 50%; top: 67%; --pw: min(50vw, 27svh); }
 }
@@ -761,11 +792,13 @@ main .reveal { will-change: transform; }
   filter: drop-shadow(0 0 24px rgba(238, 240, 244, 0.45));
 }
 .sun--set { top: 112%; }
+/* без анимации закатное солнце стоит под сценой, и край сцены резал его свечение по прямой */
+html:not(.anim) .sun--set { display: none; }
 .cap--21 { top: auto; bottom: 12svh; justify-content: flex-end; max-width: 14ch; }
 .stage--21 .phone { left: 62%; }
 @media (max-width: 900px) {
   .moon { left: 86%; top: 35%; width: 52px; box-shadow: inset -11px -4px 0 0 #eef0f4; }
-  .cap--21 { top: calc(env(safe-area-inset-top, 0px) + 112px); bottom: auto; }
+  .cap--21 { top: calc(env(safe-area-inset-top, 0px) + 112px); bottom: auto; max-width: none; }
   .stage--21 .phone { left: 50%; top: 66%; }
 }
 /* сообщение бота в Telegram — так задание увидит ученик. Стоит слева от телефона
@@ -911,14 +944,18 @@ main .reveal { will-change: transform; }
   <symbol id="t-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.9l1.7 2.3 2.8-.5.6 2.8 2.5 1.4-1.1 2.6 1.1 2.6-2.5 1.4-.6 2.8-2.8-.5L12 21.1l-1.7-2.3-2.8.5-.6-2.8-2.5-1.4 1.1-2.6-1.1-2.6 2.5-1.4.6-2.8 2.8.5z"/></symbol>
 </svg>
 
-<div class="stars" aria-hidden="true"></div>
-<div class="aura" aria-hidden="true">
+<div class="sky" id="sky" aria-hidden="true">
+<div class="sky__day"></div>
+<div class="stars"></div>
+<div class="aura">
   <div class="aura__wave aura__wave--a"><img src="aura.webp" alt="" width="1600" height="1300" decoding="async"></div>
   <div class="aura__wave aura__wave--b"><img src="aura.webp" alt="" width="1600" height="1300" decoding="async"></div>
 </div>
 <script>window.lessaAuraReady && window.lessaAuraReady();</script>
-<div class="paper" aria-hidden="true"></div>
-<div class="dawn" aria-hidden="true"></div>
+<div class="paper"></div>
+<div class="dawn"></div>
+</div>
+<div class="scrim" id="scrim" aria-hidden="true"></div>
 
 <header class="top">
   <a class="brand" href="#s0"><img src="logo.png" alt="" width="34" height="34">Lessa</a>
@@ -950,14 +987,14 @@ main .reveal { will-change: transform; }
       <p class="cap cap--b" id="cap-b">Теперь всё само ложится в&nbsp;заявки.</p>
 
       <div class="bubbles" id="bubbles" aria-hidden="true">
-        <span class="bubble" data-x="22" data-y="16" data-r="-5" data-mx="24" data-my="32"><small>Мама Сони</small>А можно перенести на&nbsp;четверг?</span>
-        <span class="bubble" data-x="36" data-y="7" data-r="3" data-mx="76" data-my="30"><small>Артём</small>Скиньте ссылку на&nbsp;зум</span>
-        <span class="bubble" data-x="64" data-y="6" data-r="-3" data-mx="22" data-my="64"><small>Папа Димы</small>Сколько мы должны за&nbsp;октябрь?</span>
-        <span class="bubble" data-x="81" data-y="19" data-r="4" data-mx="82" data-my="46"><small>Полина</small>Во сколько завтра?</span>
-        <span class="bubble" data-x="75" data-y="38" data-r="-4" data-mx="18" data-my="48"><small>Мама Сони</small>Перевела 4000, проверьте</span>
-        <span class="bubble" data-x="74" data-y="54" data-r="3" data-mx="78" data-my="62"><small>Вера</small>Можно пробное в&nbsp;субботу?</span>
-        <span class="bubble" data-x="81" data-y="71" data-r="-5" data-mx="28" data-my="80"><small>Артём</small>А домашка какая была?</span>
-        <span class="bubble" data-x="72" data-y="86" data-r="4" data-mx="72" data-my="84"><small>Мама Глеба</small>Мы опоздаем минут на&nbsp;10</span>
+        <span class="bubble" data-x="22" data-y="16" data-r="-5" data-mx="28" data-my="0"><small>Мама Сони</small>А можно перенести на&nbsp;четверг?</span>
+        <span class="bubble" data-x="36" data-y="7" data-r="3" data-mx="72" data-my="14"><small>Артём</small>Скиньте ссылку на&nbsp;зум</span>
+        <span class="bubble" data-x="64" data-y="6" data-r="-3" data-mx="28" data-my="57"><small>Папа Димы</small>Сколько мы должны за&nbsp;октябрь?</span>
+        <span class="bubble" data-x="81" data-y="19" data-r="4" data-mx="72" data-my="43"><small>Полина</small>Во сколько завтра?</span>
+        <span class="bubble" data-x="75" data-y="38" data-r="-4" data-mx="28" data-my="29"><small>Мама Сони</small>Перевела 4000, проверьте</span>
+        <span class="bubble" data-x="74" data-y="54" data-r="3" data-mx="72" data-my="71"><small>Вера</small>Можно пробное в&nbsp;субботу?</span>
+        <span class="bubble" data-x="81" data-y="71" data-r="-5" data-mx="28" data-my="86"><small>Артём</small>А домашка какая была?</span>
+        <span class="bubble" data-x="72" data-y="86" data-r="4" data-mx="72" data-my="100"><small>Мама Глеба</small>Мы опоздаем минут на&nbsp;10</span>
         <span class="bubble" data-x="52" data-y="95" data-r="-2"><small>Илья</small>А вы по&nbsp;выходным работаете?</span>
         <span class="bubble" data-x="28" data-y="88" data-r="5"><small>Папа Димы</small>Дима заболел, сегодня не&nbsp;придём</span>
         <span class="bubble" data-x="13" data-y="74" data-r="-3"><small>Мама Сони</small>Можно записать и&nbsp;младшую?</span>
@@ -1337,6 +1374,14 @@ main .reveal { will-change: transform; }
     screens.forEach((s) => ro.observe(s));
   }
 
+  // Текст меняем, только если он другой: запись даже того же текста заставляет браузер
+  // заново раскладывать страницу, а сцены обновляют подписи на каждом кадре прокрутки
+  const setText = (el, text) => { if (el.textContent !== text) el.textContent = text; };
+  // Телефоны за экраном не анимируют подсказки: бесконечная анимация держит слои и нагружает телефон
+  if (window.IntersectionObserver) {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => e.target.classList.toggle("idle", !e.isIntersecting)));
+    document.querySelectorAll(".phone").forEach((p) => { p.classList.add("idle"); io.observe(p); });
+  }
   const showToast = (el, text) => {
     el.textContent = text;
     el.classList.remove("show");
@@ -1544,18 +1589,40 @@ main .reveal { will-change: transform; }
   const clockEl = $("clock"), dotEl = $("clock-dot"), partEl = $("clock-part");
   const DAY_START = 7 * 60, DAY_END = 22 * 60;
   const fmt = (m) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(Math.floor(m % 60)).padStart(2, "0")}`;
+  // Пишем в DOM только то, что изменилось: часы обновляются на каждом кадре прокрутки
+  let clockText = "", partText = "", dotTop = -1;
   const setClock = (min) => {
     const m = Math.max(DAY_START, Math.min(DAY_END, min));
-    clockEl.textContent = fmt(Math.round(m));
-    dotEl.style.top = `${((m - DAY_START) / (DAY_END - DAY_START)) * 100}%`;
-    partEl.textContent = m < 8 * 60 ? "рассвет" : m < 12 * 60 ? "утро" : m < 18 * 60 ? "день" : m < 21 * 60 ? "вечер" : "ночь";
+    const text = fmt(Math.round(m));
+    if (text !== clockText) clockEl.textContent = clockText = text;
+    const part = m < 8 * 60 ? "рассвет" : m < 12 * 60 ? "утро" : m < 18 * 60 ? "день" : m < 21 * 60 ? "вечер" : "ночь";
+    if (part !== partText) partEl.textContent = partText = part;
+    const top = Math.round(((m - DAY_START) / (DAY_END - DAY_START)) * 1000) / 10;
+    if (top !== dotTop) dotEl.style.top = `${(dotTop = top)}%`;
   };
+  /* Небо: 0 — ночь, 1 — день. Плавно меняются только слои фона и подложка шапки (свой --sky
+     у этих элементов), текст и карточки переключаются один раз — классом .day на середине. */
   const screenMain = $("screen-main"), screenNight = $("screen-night");
+  const skyLayers = [$("sky"), $("scrim")];
+  const sky = { v: 0 };
+  let skyShown = -1, isDay = null;
   const setSky = (v) => {
-    root.style.setProperty("--sky", v.toFixed(3));
-    root.style.colorScheme = v > 0.5 ? "light" : "dark";
-    setTheme(screenMain, v > 0.5 ? "light" : "dark");
+    sky.v = v;
+    const r = Math.round(v * 400) / 400;
+    if (r !== skyShown) {
+      skyShown = r;
+      skyLayers.forEach((el) => el.style.setProperty("--sky", String(r)));
+    }
+    const day = v > 0.5;
+    if (day !== isDay) {
+      isDay = day;
+      root.classList.toggle("day", day);
+      setTheme(screenMain, day ? "light" : "dark");
+    }
   };
+  const scrim = $("scrim");
+  let scrimOn = null;
+  const setScrim = (on) => { if (on !== scrimOn) scrim.classList.toggle("on", (scrimOn = on)); };
   // Приложение вечером темнеет вместе с Telegram
   const nightTheme = (v) => setTheme(screenNight, v > 0.5 ? "light" : "dark");
 
@@ -1570,6 +1637,7 @@ main .reveal { will-change: transform; }
       const v = dawn * (1 - dusk);
       setSky(v);
       nightTheme(v);
+      setScrim(y > vh * 0.5);
       setClock(DAY_START + Math.min(1, y / Math.max(1, document.documentElement.scrollHeight - vh)) * (DAY_END - DAY_START));
     };
     addEventListener("scroll", onScroll, { passive: true });
@@ -1579,7 +1647,14 @@ main .reveal { will-change: transform; }
 
   root.classList.add("anim");
   gsap.registerPlugin(ScrollTrigger);
-  const lenis = window.Lenis ? new Lenis({ lerp: 0.09 }) : null;
+  // Адресная строка телефона прячется и появляется при прокрутке — пересчитывать из-за этого
+  // все сцены нельзя: страница прыгала бы
+  ScrollTrigger.config({ ignoreMobileResize: true });
+  /* Lenis сглаживает колесо мыши. На телефоне ему нечего сглаживать (палец листает сам), а его
+     обработчик касаний не даёт браузеру листать, пока не освободится скрипт, — страница
+     отставала от пальца. Поэтому на сенсорных экранах без мыши его нет. */
+  const touchOnly = matchMedia("(hover: none) and (pointer: coarse)").matches;
+  const lenis = window.Lenis && !touchOnly ? new Lenis({ lerp: 0.09 }) : null;
   if (lenis) {
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add((t) => lenis.raf(t * 1000));
@@ -1592,7 +1667,6 @@ main .reveal { will-change: transform; }
     lenis ? lenis.scrollTo(target) : target.scrollIntoView();
   }));
   const mobile = () => innerWidth <= 900;
-  const skyNow = () => Number(gsap.getProperty(root, "--sky")) || 0;
 
   /* Раскладка зависит от ширины окна (страница на claude.ai может открыться узкой и потом
      расшириться): matchMedia собирает всё заново, когда окно переходит границу 900px. */
@@ -1601,8 +1675,14 @@ main .reveal { will-change: transform; }
     const stage = $("stage"), phone = $("phone-main");
     const bubbles = gsap.utils.toArray(".bubble").filter((b) => getComputedStyle(b).display !== "none");
     const pos = (b, axis) => Number(b.dataset[(mobile() && b.dataset.mx ? "m" : "") + axis] || b.dataset[axis]);
+    /* На компьютере облачка стоят по всей сцене (data-x/y — проценты сцены). На телефоне — только
+       под подписью, иначе на низком экране закрывали её: data-my — доля места от подписи до низа. */
+    const capBottom = $("cap-a").offsetTop + Math.max($("cap-a").offsetHeight, $("cap-b").offsetHeight) + 12;
+    const bubbleTop = (b) => mobile()
+      ? `calc(${capBottom + 44}px + (100% - ${capBottom + 88}px) * ${pos(b, "y") / 100})`
+      : `${pos(b, "y")}%`;
     gsap.set(bubbles, {
-      left: (i, b) => `${pos(b, "x")}%`, top: (i, b) => `${pos(b, "y")}%`,
+      left: (i, b) => `${pos(b, "x")}%`, top: (i, b) => bubbleTop(b),
       xPercent: -50, yPercent: -50, rotation: (i, b) => Number(b.dataset.r), scale: 0.4, opacity: 0,
     });
     gsap.set("#scr-leads", { opacity: 0 });
@@ -1614,10 +1694,10 @@ main .reveal { will-change: transform; }
     const t1 = gsap.timeline({
       defaults: { ease: "none" },
       scrollTrigger: { trigger: stage, start: "top top", end: "+=260%", pin: true, scrub: 0.7, invalidateOnRefresh: true },
-      // Тема телефона — по кадру самой анимации: событие прокрутки приходит раньше, чем её догоняет плавность
-      onUpdate: () => setSky(skyNow()),
+      // Небо и тема телефона — по кадру самой анимации: событие прокрутки приходит раньше, чем её догоняет плавность
+      onUpdate: () => setSky(sky.v),
     });
-    t1.fromTo(root, { "--sky": 0 }, { "--sky": 1, duration: 0.3 }, 0)
+    t1.fromTo(sky, { v: 0 }, { v: 1, duration: 0.3 }, 0)
       .to("#sun", { top: mobile() ? "34%" : "16%", left: mobile() ? "80%" : "76%", scale: 1, duration: 0.34, ease: "power1.out" }, 0)
       .to(phone, { yPercent: 0, opacity: 1, duration: 0.16, ease: "power2.out" }, 0.04)
       .to("#cap-a", { opacity: 1, duration: 0.06 }, 0.12)
@@ -1625,8 +1705,9 @@ main .reveal { will-change: transform; }
       .to(phone, { x: 5, duration: 0.008, repeat: 13, yoyo: true }, 0.22)
       .to("#cap-a", { opacity: 0, y: -20, duration: 0.05 }, 0.48)
       .to(bubbles, {
-        x: (i, b) => stage.clientWidth * (0.5 - pos(b, "x") / 100),
-        y: (i, b) => stage.clientHeight * ((mobile() ? 0.6 : 0.5) - pos(b, "y") / 100),
+        // в центр телефона: от того места, где облачко стоит
+        x: (i, b) => stage.clientWidth * 0.5 - b.offsetLeft,
+        y: (i, b) => stage.clientHeight * (mobile() ? 0.6 : 0.5) - b.offsetTop,
         scale: 0.12, opacity: 0, rotation: 0, duration: 0.14, ease: "power2.in", stagger: 0.012,
       }, 0.52)
       .to("#scr-chats", { opacity: 0, filter: "blur(6px)", duration: 0.06 }, 0.6)
@@ -1674,9 +1755,9 @@ main .reveal { will-change: transform; }
         const p = t17.progress();
         const secLeft = Math.round(65 * 60 - p * 10 * 60);
         const h = Math.floor(secLeft / 3600), m = Math.floor((secLeft % 3600) / 60), s = secLeft % 60;
-        countEl.textContent = `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-        linkStatus.textContent = fmt(18 * 60 - secLeft / 60);
-        lkBadge.hidden = p < 0.52;
+        if (!mobile()) setText(countEl, `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`); // на телефоне отсчёта нет
+        setText(linkStatus, fmt(18 * 60 - secLeft / 60));
+        if (lkBadge.hidden !== p < 0.52) lkBadge.hidden = p < 0.52;
       },
     });
     t17.to("#ph-link", { yPercent: 0, opacity: 1, duration: 0.15, ease: "power2.out" }, 0)
@@ -1702,7 +1783,7 @@ main .reveal { will-change: transform; }
     gsap.set("#hw-sheet .modal", { yPercent: 100 });
     gsap.set(newWrap, { height: 0, opacity: 0, marginBottom: -14, overflow: "hidden" });
     gsap.set("#tgmsg", { opacity: 0, y: 30, scale: 0.92 });
-    const tg = $("tgmsg"), night = $("ph-night");
+    const tg = $("tgmsg"), night = $("ph-night"), nightStatus = $("night-status");
     const nightShift = () => Math.max(0, tg.offsetTop + tg.offsetHeight + 16 - night.offsetTop);
     const hwState = (p) => {
       const picked = p > 0.3;
@@ -1716,21 +1797,21 @@ main .reveal { will-change: transform; }
       defaults: { ease: "none" },
       scrollTrigger: { trigger: "#stage21", start: "top top", end: "+=260%", pin: true, scrub: 0.7 },
       onUpdate: () => {
-        const v = skyNow(), p = t21.progress();
+        const v = sky.v, p = t21.progress();
         setSky(v); nightTheme(v); hwState(p);
-        $("night-status").textContent = fmt(20 * 60 + 50 + p * 50); // 20:50 → 21:40, как часы справа
+        setText(nightStatus, fmt(20 * 60 + 50 + p * 50)); // 20:50 → 21:40, как часы справа
       },
     });
     t21.to("#ph-night", { yPercent: 0, opacity: 1, duration: 0.12, ease: "power2.out" }, 0)
       .to("#sun-set", { top: "115%", left: "62%", duration: 0.4, ease: "power1.in" }, 0.02)
       .to("#sun-set", { opacity: 0, duration: 0.14 }, 0.3)
-      .fromTo(root, { "--sky": 1 }, { "--sky": 0, duration: 0.4, immediateRender: false }, 0.04)
+      .fromTo(sky, { v: 1 }, { v: 0, duration: 0.4, immediateRender: false }, 0.04)
       .to("#cap21", { opacity: 1, y: 0, duration: 0.08 }, 0.1)
       .to("#hw-sheet", { autoAlpha: 1, duration: 0.05 }, 0.2)
       .to("#hw-sheet .modal", { yPercent: 0, duration: 0.08, ease: "power3.out" }, 0.2)
       .to(typing, { n: TASK.length, duration: 0.22, onUpdate: () => {
         const n = Math.round(typing.n);
-        typed.textContent = TASK.slice(0, n);
+        setText(typed, TASK.slice(0, n));
         $("hw-ph").hidden = n > 0;
       } }, 0.33)
       .to("#hw-sheet .modal", { yPercent: 100, duration: 0.06, ease: "power2.in" }, 0.6)
@@ -1740,8 +1821,16 @@ main .reveal { will-change: transform; }
       .to("#tgmsg", { opacity: 1, y: 0, scale: 1, duration: 0.08, ease: "back.out(1.6)" }, 0.7)
       .to({}, { duration: 0.14 });
     if (mobile()) {
+      /* Телефон уходит под сообщение и уменьшается, чтобы целиком остаться в сцене: ниже её
+         края он обрезался по прямой, и эта линия была видна, когда сцена уезжала вверх.
+         Луна гаснет — справа от сообщения ей на узком экране места нет. */
+      const nightFit = () => {
+        const room = night.parentElement.clientHeight - 16 - (tg.offsetTop + tg.offsetHeight + 16);
+        return Math.min(1, Math.max(0.5, room / night.offsetHeight));
+      };
       t21.to("#cap21", { opacity: 0, y: -16, duration: 0.05 }, 0.65)
-        .to(night, { y: nightShift, duration: 0.06, ease: "power2.out" }, 0.66);
+        .to(night, { y: nightShift, scale: nightFit, transformOrigin: "50% 0%", duration: 0.06, ease: "power2.out" }, 0.66)
+        .to("#moon", { opacity: 0, duration: 0.05 }, 0.7);
     }
 
     /* ---------- 22:00: финал ---------- */
@@ -1762,20 +1851,31 @@ main .reveal { will-change: transform; }
     const mark = (sel, start) => ScrollTrigger.create({ trigger: sel, start });
     const m10 = mark("#s10", "top 55%"), mBr = mark("#bridge", "top 75%"), mBrEnd = mark("#bridge", "bottom 65%");
     const m15 = mark("#s2", "top 55%"), m19 = mark("#s19", "top 55%"), m22 = mark("#s22", "top 60%");
+    // Опорные точки часов: позиции сцен известны после пересчёта раскладки — считаем их тогда,
+    // а не на каждом кадре (высота страницы, прочитанная посреди кадра, тоже стоит пересчёта)
+    let pts = [], pins = [], scrimFrom = 0;
+    const measure = () => {
+      pts = [
+        [0, DAY_START],
+        [t1.scrollTrigger.start, 8 * 60], [t1.scrollTrigger.end, 9 * 60 + 10],
+        [m10.start, 10 * 60], [mBr.start, 10 * 60 + 40], [mBrEnd.start, 14 * 60 + 40],
+        [m15.start, 15 * 60],
+        [t17.scrollTrigger.start, 16 * 60 + 55], [t17.scrollTrigger.end, 17 * 60 + 5],
+        [m19.start, 19 * 60],
+        [t21.scrollTrigger.start, 20 * 60 + 50], [t21.scrollTrigger.end, 21 * 60 + 40],
+        [m22.start, 22 * 60], [ScrollTrigger.maxScroll(window), 22 * 60],
+      ];
+      pins = [t1, t17, t21].map((t) => [t.scrollTrigger.start, t.scrollTrigger.end]);
+      scrimFrom = innerHeight * 0.25;
+    };
+    ScrollTrigger.addEventListener("refresh", measure);
     ScrollTrigger.create({
       start: 0, end: "max",
       onUpdate: (self) => {
         const y = self.scroll();
-        const pts = [
-          [0, DAY_START],
-          [t1.scrollTrigger.start, 8 * 60], [t1.scrollTrigger.end, 9 * 60 + 10],
-          [m10.start, 10 * 60], [mBr.start, 10 * 60 + 40], [mBrEnd.start, 14 * 60 + 40],
-          [m15.start, 15 * 60],
-          [t17.scrollTrigger.start, 16 * 60 + 55], [t17.scrollTrigger.end, 17 * 60 + 5],
-          [m19.start, 19 * 60],
-          [t21.scrollTrigger.start, 20 * 60 + 50], [t21.scrollTrigger.end, 21 * 60 + 40],
-          [m22.start, 22 * 60], [ScrollTrigger.maxScroll(window), 22 * 60],
-        ];
+        if (!pts.length) measure();
+        // подложка под шапкой — там, где текст уезжает под неё: не на первом экране и не в закреплённых сценах
+        setScrim(y > scrimFrom && !pins.some(([a, b]) => y > a && y < b));
         let min = DAY_END;
         for (let i = 1; i < pts.length; i++) {
           if (y <= pts[i][0]) {
@@ -1789,6 +1889,7 @@ main .reveal { will-change: transform; }
     });
     setSky(0);
     setClock(DAY_START);
+    return () => ScrollTrigger.removeEventListener("refresh", measure);
   };
   const layouts = gsap.matchMedia();
   layouts.add("(max-width: 900px)", build);
