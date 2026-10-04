@@ -815,8 +815,6 @@ main .reveal { will-change: transform; }
 .reviews cite { font-style: normal; font-size: 14px; color: var(--muted); }
 .s22__price { margin: 0; font: 300 clamp(18px, 1.8vw, 22px)/1.3 var(--font-display); color: var(--muted); }
 .s22__price b { font-weight: 500; color: var(--fg); }
-/* цена запуска: прежняя зачёркнута оранжевым */
-.s22__price s { margin-right: 6px; text-decoration-color: var(--sun); text-decoration-thickness: 2px; }
 .s22__cta { margin-top: 4px; display: flex; align-items: center; gap: 28px; }
 .s22__cta .cta { min-height: 60px; padding: 0 32px; font-size: 17px; }
 .qr { flex: none; width: 148px; height: 148px; padding: 10px; border-radius: 18px; background: #ffffff; box-shadow: 0 0 40px color-mix(in oklab, var(--sun) 25%, transparent); }
@@ -1272,11 +1270,11 @@ main .reveal { will-change: transform; }
     <p class="s22__sub">Переписку, напоминания и&nbsp;оплаты Lessa взяла на&nbsp;себя. Попробуйте на&nbsp;своих учениках.</p>
     <ul class="calm" aria-label="Почему не страшно попробовать">
       <li><b>Пара минут на&nbsp;подключение</b><span>Имя и&nbsp;предметы&nbsp;— и&nbsp;кабинет готов. Первые 7&nbsp;дней бесплатно, карта не&nbsp;нужна.</span></li>
-      <li><b>Ничего не&nbsp;спишется само</b><span>Платите картой, по&nbsp;СБП или переводом&nbsp;— и&nbsp;только тогда, когда решите продлить.</span></li>
+      <li><b>Ничего не&nbsp;спишется само</b><span>Платите картой или по&nbsp;СБП&nbsp;— и&nbsp;только тогда, когда решите продлить.</span></li>
       <li><b>Ученики и&nbsp;история останутся</b><span>Если не&nbsp;продлите, кабинет закроется, но&nbsp;данные не&nbsp;удаляются.</span></li>
     </ul>
     <ul class="reviews" id="reviews" aria-label="Отзывы репетиторов" hidden></ul>
-    <p class="s22__price"><s aria-label="было 490 ₽">490&nbsp;₽</s><b>290&nbsp;₽</b> в&nbsp;месяц · первые 7&nbsp;дней бесплатно</p>
+    <p class="s22__price">7&nbsp;дней бесплатно, потом первый месяц&nbsp;— <b>290&nbsp;₽</b>, дальше&nbsp;— <b>490&nbsp;₽</b> в&nbsp;месяц</p>
     <div class="s22__cta">
       <div class="qr" id="qr" aria-hidden="true"></div>
       <div class="s22__btns">
