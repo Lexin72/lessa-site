@@ -857,37 +857,6 @@ html:not(.anim) .sun--set { display: none; }
 .cta--sun { background: var(--sun); color: var(--sun-ink); box-shadow: 0 10px 30px -10px var(--sun); }
 .cta--sun:hover { box-shadow: 0 0 40px var(--sun); }
 
-/* приглашения: 100 ₽ за репетитора, которого вы привели */
-.ref { position: relative; z-index: 1; display: flex; justify-content: center; padding: 20px var(--gutter) clamp(90px, 14vh, 150px); }
-.ref__card {
-  position: relative; width: min(100%, 860px); padding: clamp(22px, 3.6vw, 40px); border-radius: 30px;
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 26px 36px; align-items: center;
-  border: 1px solid color-mix(in oklab, var(--sun) 42%, transparent);
-  background: radial-gradient(80% 120% at 100% 0%, color-mix(in oklab, var(--sun) 20%, transparent), transparent 62%), color-mix(in oklab, var(--bubble) 82%, transparent);
-  box-shadow: 0 0 90px -46px var(--sun);
-}
-.ref__eyebrow { margin: 0 0 14px; font: 400 12px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: color-mix(in oklab, var(--sun) 70%, var(--fg)); }
-.ref__title { margin: 0; max-width: 17ch; font: 300 clamp(24px, 2.8vw, 38px)/1.1 var(--font-display); letter-spacing: -0.04em; text-wrap: balance; }
-.ref__note { margin: 16px 0 0; font-size: 15px; color: var(--muted); }
-.ref__note a { color: var(--fg); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--sun) 70%, transparent); text-underline-offset: 3px; }
-.ref__sum { font: 200 clamp(64px, 8vw, 124px)/0.85 var(--font-display); letter-spacing: -0.06em; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--sun); text-shadow: 0 0 40px color-mix(in oklab, var(--sun) 55%, transparent); }
-.ref__sum small { margin-left: 0.08em; font-size: 0.42em; letter-spacing: -0.02em; }
-/* место под «100» занято сразу: пока сумма набирается, рамка не меняет размер */
-.ref__amount { display: inline-block; min-width: 4ch; text-align: right; }
-.ref__steps { grid-column: 1 / -1; position: relative; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-/* линия между шагами: заполняется оранжевым при прокрутке */
-.ref__line { position: absolute; left: 20px; right: 33%; top: 19px; height: 2px; border-radius: 2px; background: var(--line); overflow: hidden; }
-.ref__line i { position: absolute; inset: 0; background: var(--sun); box-shadow: 0 0 10px var(--sun); transform-origin: 0 50%; }
-.ref__step { position: relative; display: flex; flex-direction: column; gap: 8px; }
-.ref__num { width: 40px; height: 40px; margin-bottom: 8px; display: grid; place-items: center; border-radius: 50%; font: 500 15px/1 var(--font-display); background: var(--sun); color: var(--sun-ink); box-shadow: 0 0 0 6px color-mix(in oklab, var(--sun) 18%, transparent), 0 0 20px color-mix(in oklab, var(--sun) 60%, transparent); }
-.ref__steps b { font: 400 17px/1.25 var(--font-display); letter-spacing: -0.02em; }
-.ref__steps span:last-child { font-size: 14px; line-height: 1.45; color: var(--muted); }
-@media (max-width: 760px) {
-  .ref__card { grid-template-columns: 1fr; border-radius: 28px; }
-  .ref__sum { order: -1; }
-  .ref__steps { grid-template-columns: 1fr; gap: 20px; }
-  .ref__line { display: none; }
-}
 .foot { position: relative; z-index: 1; padding: 32px var(--gutter) 40px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--muted); }
 .foot__links { display: flex; gap: 20px; flex-wrap: wrap; }
 .foot a { color: var(--fg); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--sun) 70%, transparent); text-underline-offset: 3px; }
@@ -1360,23 +1329,6 @@ html.lite, .lite .app { transition: none; }
     </div>
   </section>
 
-  <!-- приглашения -->
-  <section class="ref" id="ref" aria-labelledby="ref-title">
-    <div class="ref__card">
-      <div>
-        <p class="ref__eyebrow">Приглашения</p>
-        <h2 class="ref__title" id="ref-title">Посоветуйте Lessa репетитору и&nbsp;получите 100&nbsp;₽</h2>
-        <p class="ref__note">Приглашать может любой взрослый пользователь Lessa: репетитор, родитель или ученик. <a href="offer/#referral">Правила</a></p>
-      </div>
-      <div class="ref__sum" aria-hidden="true"><span class="ref__amount">+<span id="ref-sum">100</span></span><small>₽</small></div>
-      <div class="ref__steps">
-        <span class="ref__line" aria-hidden="true"><i></i></span>
-        <div class="ref__step"><span class="ref__num">1</span><b>Скопируйте свою ссылку</b><span>В&nbsp;Lessa: «Пригласить репетитора». Отправьте её знакомому репетитору.</span></div>
-        <div class="ref__step"><span class="ref__num">2</span><b>Репетитор подключает кабинет</b><span>По&nbsp;вашей ссылке&nbsp;— с&nbsp;теми&nbsp;же 7&nbsp;днями бесплатно.</span></div>
-        <div class="ref__step"><span class="ref__num">3</span><b>Он оплачивает подписку</b><span>Вам приходит 100&nbsp;₽&nbsp;— один раз, за&nbsp;его первую оплату. Вывод на&nbsp;карту&nbsp;— от&nbsp;100&nbsp;₽.</span></div>
-      </div>
-    </div>
-  </section>
 </main>
 
 <footer class="foot">
@@ -1692,7 +1644,7 @@ html.lite, .lite .app { transition: none; }
       e.target.classList.add("in");
       reveal.unobserve(e.target);
     }), { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
-    document.querySelectorAll(".stage .phone, .stage--17 .cap, .stage--21 .cap, .scene__text, .scene > .phone, .s19__body, .bridge p, .s2__head, .duo, .s22 > *, .ref__card")
+    document.querySelectorAll(".stage .phone, .stage--17 .cap, .stage--21 .cap, .scene__text, .scene > .phone, .s19__body, .bridge p, .s2__head, .duo, .s22 > *")
       .forEach((el) => { el.classList.add("rv"); reveal.observe(el); });
   };
 
@@ -1914,16 +1866,6 @@ html.lite, .lite .app { transition: none; }
     /* ---------- 22:00: финал ---------- */
     gsap.fromTo(".s22 > *", { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: "none", stagger: 0.06,
       scrollTrigger: { trigger: ".s22", start: "top 80%", end: "top 15%", scrub: 0.6 } });
-
-    /* ---------- приглашения: шаги загораются по очереди, бонус набирается до 100 ₽ ---------- */
-    const refSum = $("ref-sum"), bonus = { v: 0 };
-    refSum.textContent = "0";
-    gsap.set(".ref__line i", { scaleX: 0 });
-    gsap.set(".ref__step", { opacity: 0.3, y: 16 });
-    gsap.timeline({ scrollTrigger: { trigger: ".ref__card", start: "top 85%", end: "bottom 90%", scrub: 0.8 } })
-      .to(".ref__line i", { scaleX: 1, ease: "none", duration: 0.7 }, 0)
-      .to(".ref__step", { opacity: 1, y: 0, ease: "power2.out", duration: 0.2, stagger: 0.3 }, 0)
-      .to(bonus, { v: 100, ease: "power2.out", duration: 0.35, onUpdate: () => { refSum.textContent = String(Math.round(bonus.v)); } }, 0.62);
 
     /* ---------- часы: время идёт с прокруткой, между остановками — перемоткой ---------- */
     const mark = (sel, start) => ScrollTrigger.create({ trigger: sel, start });
