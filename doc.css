@@ -32,7 +32,8 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); }
+html { background: var(--bg); scrollbar-width: none; }
+html::-webkit-scrollbar { display: none; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 400 16px/1.65 var(--font-text); -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration-color: var(--sun); text-underline-offset: 3px; }
 a:hover { color: var(--sun-text); }
