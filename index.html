@@ -10,6 +10,46 @@
 <meta property="og:locale" content="ru_RU">
 <meta property="og:title" content="Lessa — кабинет репетитора в Telegram">
 <meta property="og:description" content="Расписание, напоминания ученикам, учёт оплат и задания — в одном приложении в Telegram.">
+<link rel="preload" href="fonts/geologica-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/geologica-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/golos-text-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/golos-text-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="aura.webp" as="image" type="image/webp">
+<script>
+/* Страница показывается готовой: пока не загрузились шрифты первого экрана и свечение,
+   она скрыта (фон уже тёмный). Иначе первую секунду текст рисовался системным шрифтом
+   и скачком менялся. Дольше 1,5 с не ждём — при медленной связи покажем как есть. */
+(function () {
+  var root = document.documentElement;
+  if (!document.fonts || !document.fonts.load || !window.Promise) return;
+  root.classList.add("loading");
+  var shown = false;
+  var show = function () {
+    if (shown) return;
+    shown = true;
+    root.classList.remove("loading");
+    /* шрифты экранов в телефонах — сразу следом, чтобы не мигали при прокрутке */
+    ['600 14px "Unbounded"', '400 15px "Onest"', '400 10px "Martian Mono"'].forEach(function (f) {
+      document.fonts.load(f, "Lessa Заявки 0123").catch(function () {});
+    });
+  };
+  /* свечение — когда картинки волн на странице не только скачаны, но и готовы к показу;
+     проверку запускает строчка сразу после разметки волн, не дожидаясь скриптов анимации */
+  var aura = new Promise(function (done) {
+    window.lessaAuraReady = function () {
+      var imgs = [].slice.call(document.querySelectorAll(".aura img"));
+      Promise.all(imgs.map(function (img) { return img.decode ? img.decode().catch(function () {}) : null; })).then(done, done);
+    };
+  });
+  Promise.all([
+    document.fonts.load('200 100px "Geologica"', "Lessa"),
+    document.fonts.load('300 30px "Geologica"', "Жизнь репетитора без переписки 07:00"),
+    document.fonts.load('500 14px "Golos Text"', "Открыть в Telegram"),
+    aura,
+  ]).then(show, show);
+  setTimeout(show, 1500);
+})();
+</script>
 <link rel="icon" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <style>
@@ -73,6 +113,9 @@ body {
   -webkit-font-smoothing: antialiased; overflow-x: clip;
 }
 html.lenis, html.lenis body { height: auto; }
+/* пока грузятся шрифты первого экрана — страница скрыта, видно только тёмный фон */
+html.loading body { opacity: 0; }
+body { transition: opacity 0.35s ease; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
@@ -875,6 +918,7 @@ main .reveal { will-change: transform; }
   <div class="aura__wave aura__wave--a"><img src="aura.webp" alt="" width="1600" height="1300" decoding="async"></div>
   <div class="aura__wave aura__wave--b"><img src="aura.webp" alt="" width="1600" height="1300" decoding="async"></div>
 </div>
+<script>window.lessaAuraReady && window.lessaAuraReady();</script>
 <div class="paper" aria-hidden="true"></div>
 <div class="dawn" aria-hidden="true"></div>
 
