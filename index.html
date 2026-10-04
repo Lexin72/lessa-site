@@ -16,6 +16,10 @@
 <link rel="preload" href="fonts/golos-text-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="aura.webp" as="image" type="image/webp">
 <script>
+/* Телефоны и планшеты получают спокойную версию (класс .lite): сцены не закрепляются и не
+   ведутся прокруткой, экраны в телефонах меняются сами, когда блок на экране. Класс ставится
+   здесь, до первой отрисовки, чтобы раскладка не перескакивала. */
+if (matchMedia("(max-width: 900px), (hover: none) and (pointer: coarse)").matches) document.documentElement.classList.add("lite");
 /* Страница показывается готовой: пока не загрузились шрифты первого экрана и свечение,
    она скрыта (фон уже тёмный). Иначе первую секунду текст рисовался системным шрифтом
    и скачком менялся. Дольше 1,5 с не ждём — при медленной связи покажем как есть. */
@@ -191,19 +195,6 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   padding: calc(env(safe-area-inset-top, 0px) + 18px) var(--gutter) 18px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
-/* Подложка под шапкой (и часами на телефоне): текст, уехавший наверх, растворяется в небе,
-   а не налезает на кнопку и часы. Цвет — как у неба в эту секунду (--sky пишет скрипт).
-   Включается там, где под шапку уезжает текст; в закреплённых сценах и на первом экране её нет. */
-.scrim {
-  --c: color-mix(in oklab, var(--day) calc(var(--sky) * 100%), var(--night));
-  position: fixed; left: 0; right: 0; top: 0; z-index: 15; pointer-events: none;
-  height: calc(env(safe-area-inset-top, 0px) + 100px);
-  background: linear-gradient(var(--c) 0%, var(--c) 52%, transparent);
-  opacity: 0; transition: opacity 0.35s ease;
-}
-.scrim.on { opacity: 1; }
-/* на телефоне под ней и строка часов: сплошная часть заканчивается ниже часов */
-@media (max-width: 900px) { .scrim { height: calc(env(safe-area-inset-top, 0px) + 128px); background: linear-gradient(var(--c) 0%, var(--c) 80%, transparent); } }
 /* надпись лежит на светящейся волне — тень держит её читаемой */
 .brand { display: inline-flex; align-items: center; gap: 10px; font: 500 20px/1 var(--font-display); letter-spacing: -0.02em; text-shadow: 0 1px 14px rgba(0, 0, 0, 0.55); }
 .brand img {
@@ -908,6 +899,55 @@ html:not(.anim) .sun--set { display: none; }
   background: linear-gradient(90deg, transparent, var(--sun), transparent); box-shadow: 0 0 12px var(--sun);
 }
 
+/* ---------- Спокойная версия для телефонов и планшетов (html.lite) ----------
+   Сцены не закрепляются и не ведутся прокруткой: обычные блоки один под другим —
+   заголовок, телефон, пояснение. Экраны в телефонах меняются сами, один раз, когда телефон
+   на экране (классы .done/.play/.open/.sent ставит скрипт). Шапка не висит над страницей. */
+.lite .top { position: absolute; }
+/* ночь ↔ день — сразу, без плавного перекрашивания: на телефоне каждый кадр такого перехода
+   пересчитывал всю страницу и экраны телефонов, и в эти моменты прокрутка спотыкалась */
+html.lite, .lite .app { transition: none; }
+.lite .clock, .lite .bubbles, .lite .count, .lite .moon, .lite .sun--set { display: none; }
+.lite .stage {
+  height: auto; overflow: visible; display: flex; flex-direction: column; align-items: center; gap: 28px;
+  padding: clamp(72px, 12vh, 120px) var(--gutter) clamp(40px, 8vh, 80px); text-align: center;
+}
+.lite .cap {
+  position: relative; inset: auto; display: block; margin: 0 auto; max-width: 18ch;
+  font: 300 clamp(30px, 4vw, 58px)/1.06 var(--font-display); letter-spacing: -0.04em;
+}
+.lite .cap__note { display: block; margin: 14px auto 0; max-width: 34ch; font-size: 15px; }
+.lite .stage .phone { position: relative; left: auto; top: auto; margin: 0; --pw: min(64vw, 42svh, 300px); }
+/* 08:00: заголовок «раньше», телефон — чаты превращаются в заявки, под ним «теперь» */
+.lite .s1 .cap--a { order: 0; opacity: 1; }
+.lite .s1 .phone { order: 1; }
+.lite .s1 .cap--b { order: 2; opacity: 0; transform: translateY(12px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease); }
+.lite .s1.done .cap--b { opacity: 1; transform: none; }
+.lite #sun { top: 42%; left: 86%; width: 80px; } /* выглядывает из-за телефона */
+.lite #scr-chats { display: flex; transition: opacity 0.6s ease; }
+.lite #scr-leads { opacity: 0; transition: opacity 0.6s ease; }
+.lite .s1.done #scr-chats { opacity: 0; }
+.lite .s1.done #scr-leads { opacity: 1; }
+/* 17:00: приходит уведомление со ссылкой, потом открывается занятие */
+.lite #lk-push { transform: translateY(-160%); opacity: 0; transition: transform 0.5s var(--ease), opacity 0.4s; }
+.lite .s17.play #lk-push { transform: none; opacity: 1; }
+.lite .s17.open #lk-push { transform: translateY(-160%); opacity: 0; }
+.lite #lk-modal { opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0s 0.3s; }
+.lite .s17.open #lk-modal { opacity: 1; visibility: visible; transition: opacity 0.3s; }
+.lite #lk-modal .modal { transform: translateY(100%); transition: transform 0.5s var(--ease); }
+.lite .s17.open #lk-modal .modal { transform: none; }
+/* 21:00: в списке появляется задание Соне, под телефоном — сообщение, которое она получит */
+.lite .s21:not(.play) #hw-new-wrap { display: none; }
+.lite .s21.play #hw-new { animation: card-in 0.5s var(--ease) backwards; }
+.lite .stage--21 .tgmsg {
+  display: flex; position: relative; inset: auto; width: min(300px, 100%); margin: 0 auto; text-align: left; font-size: 14px;
+  opacity: 0; transform: translateY(16px); transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.lite .s21.sent .tgmsg { opacity: 1; transform: none; }
+/* блоки проявляются, когда до них доходит прокрутка (класс .rv ставит скрипт) */
+.lite .rv { opacity: 0; transform: translateY(28px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+.lite .rv.in { opacity: 1; transform: none; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -955,7 +995,6 @@ html:not(.anim) .sun--set { display: none; }
 <div class="paper"></div>
 <div class="dawn"></div>
 </div>
-<div class="scrim" id="scrim" aria-hidden="true"></div>
 
 <header class="top">
   <a class="brand" href="#s0"><img src="logo.png" alt="" width="34" height="34">Lessa</a>
@@ -1600,10 +1639,10 @@ html:not(.anim) .sun--set { display: none; }
     const top = Math.round(((m - DAY_START) / (DAY_END - DAY_START)) * 1000) / 10;
     if (top !== dotTop) dotEl.style.top = `${(dotTop = top)}%`;
   };
-  /* Небо: 0 — ночь, 1 — день. Плавно меняются только слои фона и подложка шапки (свой --sky
-     у этих элементов), текст и карточки переключаются один раз — классом .day на середине. */
+  /* Небо: 0 — ночь, 1 — день. Плавно меняются только слои фона (свой --sky у .sky),
+     текст и карточки переключаются один раз — классом .day на середине. */
   const screenMain = $("screen-main"), screenNight = $("screen-night");
-  const skyLayers = [$("sky"), $("scrim")];
+  const skyEl = $("sky");
   const sky = { v: 0 };
   let skyShown = -1, isDay = null;
   const setSky = (v) => {
@@ -1611,7 +1650,7 @@ html:not(.anim) .sun--set { display: none; }
     const r = Math.round(v * 400) / 400;
     if (r !== skyShown) {
       skyShown = r;
-      skyLayers.forEach((el) => el.style.setProperty("--sky", String(r)));
+      skyEl.style.setProperty("--sky", String(r));
     }
     const day = v > 0.5;
     if (day !== isDay) {
@@ -1620,28 +1659,69 @@ html:not(.anim) .sun--set { display: none; }
       setTheme(screenMain, day ? "light" : "dark");
     }
   };
-  const scrim = $("scrim");
-  let scrimOn = null;
-  const setScrim = (on) => { if (on !== scrimOn) scrim.classList.toggle("on", (scrimOn = on)); };
   // Приложение вечером темнеет вместе с Telegram
   const nightTheme = (v) => setTheme(screenNight, v > 0.5 ? "light" : "dark");
 
-  // Без GSAP (или при «меньше движения») — спокойная версия: итоговые состояния, небо меняется по разделам
-  if (!hasGsap || reduce) {
+  /* Спокойная версия на телефоне: экраны в телефонах меняются сами, один раз, когда телефон
+     хорошо виден, а блоки проявляются при прокрутке. Ничего не привязано к пальцу. */
+  const lite = root.classList.contains("lite");
+  const liteScenes = () => {
+    const s1 = $("s1"), s17 = $("s17"), s21 = $("s21");
+    if (!window.IntersectionObserver) { s1.classList.add("done"); s17.classList.add("play"); s21.classList.add("play", "sent"); return; }
+    const later = (ms, fn) => setTimeout(fn, reduce ? 0 : ms);
+    const whenSeen = (el, fn) => {
+      const io = new IntersectionObserver((entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        fn();
+      }, { threshold: 0.8 }); // телефон виден почти целиком — смену экрана не пропустить
+      io.observe(el);
+    };
+    whenSeen($("phone-main"), () => later(1200, () => s1.classList.add("done")));
+    whenSeen($("ph-link"), () => {
+      later(500, () => s17.classList.add("play"));
+      later(2600, () => s17.classList.add("open"));
+    });
+    whenSeen($("ph-night"), () => {
+      later(700, () => { s21.classList.add("play"); showToast($("hw-toast"), "Задание задано, ученик получит сообщение"); });
+      later(1500, () => s21.classList.add("sent"));
+      later(3400, () => $("hw-toast").classList.remove("show"));
+    });
+    const reveal = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      reveal.unobserve(e.target);
+    }), { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
+    document.querySelectorAll(".stage .phone, .stage--17 .cap, .stage--21 .cap, .scene__text, .scene > .phone, .s19__body, .bridge p, .s2__head, .duo, .s22 > *, .ref__card")
+      .forEach((el) => { el.classList.add("rv"); reveal.observe(el); });
+  };
+
+  // Без GSAP, при «меньше движения» и на телефоне — спокойная версия: небо меняется по разделам
+  if (!hasGsap || reduce || lite) {
     $("hw-toast").classList.remove("show");
     const s1 = $("s1"), s21 = $("s21");
+    // позиции разделов — при изменении размеров, а не на каждом событии прокрутки
+    let s1Top = 0, s21Top = 0, maxY = 1;
+    const measure = () => {
+      s1Top = s1.offsetTop; s21Top = s21.offsetTop;
+      maxY = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    };
     const onScroll = () => {
       const y = scrollY, vh = innerHeight;
-      const dawn = Math.min(1, Math.max(0, (y - s1.offsetTop + vh * 0.8) / (vh * 0.8)));
-      const dusk = Math.min(1, Math.max(0, (y - s21.offsetTop + vh * 0.6) / (vh * 0.6)));
+      const dawn = Math.min(1, Math.max(0, (y - s1Top + vh * 0.8) / (vh * 0.8)));
+      const dusk = Math.min(1, Math.max(0, (y - s21Top + vh * 0.6) / (vh * 0.6)));
       const v = dawn * (1 - dusk);
       setSky(v);
       nightTheme(v);
-      setScrim(y > vh * 0.5);
-      setClock(DAY_START + Math.min(1, y / Math.max(1, document.documentElement.scrollHeight - vh)) * (DAY_END - DAY_START));
+      if (!lite) setClock(DAY_START + Math.min(1, y / maxY) * (DAY_END - DAY_START)); // на телефоне часов нет
     };
+    const remeasure = () => { measure(); onScroll(); };
     addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+    addEventListener("resize", remeasure);
+    addEventListener("load", remeasure);
+    if (document.fonts) document.fonts.ready.then(remeasure);
+    remeasure();
+    if (lite) liteScenes();
     return;
   }
 
@@ -1650,11 +1730,9 @@ html:not(.anim) .sun--set { display: none; }
   // Адресная строка телефона прячется и появляется при прокрутке — пересчитывать из-за этого
   // все сцены нельзя: страница прыгала бы
   ScrollTrigger.config({ ignoreMobileResize: true });
-  /* Lenis сглаживает колесо мыши. На телефоне ему нечего сглаживать (палец листает сам), а его
-     обработчик касаний не даёт браузеру листать, пока не освободится скрипт, — страница
-     отставала от пальца. Поэтому на сенсорных экранах без мыши его нет. */
-  const touchOnly = matchMedia("(hover: none) and (pointer: coarse)").matches;
-  const lenis = window.Lenis && !touchOnly ? new Lenis({ lerp: 0.09 }) : null;
+  /* Lenis сглаживает колесо мыши. На телефоны он не попадает (там спокойная версия): его
+     обработчик касаний не даёт браузеру листать, пока не освободится скрипт. */
+  const lenis = window.Lenis ? new Lenis({ lerp: 0.09 }) : null;
   if (lenis) {
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add((t) => lenis.raf(t * 1000));
@@ -1853,7 +1931,7 @@ html:not(.anim) .sun--set { display: none; }
     const m15 = mark("#s2", "top 55%"), m19 = mark("#s19", "top 55%"), m22 = mark("#s22", "top 60%");
     // Опорные точки часов: позиции сцен известны после пересчёта раскладки — считаем их тогда,
     // а не на каждом кадре (высота страницы, прочитанная посреди кадра, тоже стоит пересчёта)
-    let pts = [], pins = [], scrimFrom = 0;
+    let pts = [];
     const measure = () => {
       pts = [
         [0, DAY_START],
@@ -1865,8 +1943,6 @@ html:not(.anim) .sun--set { display: none; }
         [t21.scrollTrigger.start, 20 * 60 + 50], [t21.scrollTrigger.end, 21 * 60 + 40],
         [m22.start, 22 * 60], [ScrollTrigger.maxScroll(window), 22 * 60],
       ];
-      pins = [t1, t17, t21].map((t) => [t.scrollTrigger.start, t.scrollTrigger.end]);
-      scrimFrom = innerHeight * 0.25;
     };
     ScrollTrigger.addEventListener("refresh", measure);
     ScrollTrigger.create({
@@ -1874,8 +1950,6 @@ html:not(.anim) .sun--set { display: none; }
       onUpdate: (self) => {
         const y = self.scroll();
         if (!pts.length) measure();
-        // подложка под шапкой — там, где текст уезжает под неё: не на первом экране и не в закреплённых сценах
-        setScrim(y > scrimFrom && !pins.some(([a, b]) => y > a && y < b));
         let min = DAY_END;
         for (let i = 1; i < pts.length; i++) {
           if (y <= pts[i][0]) {
