@@ -237,6 +237,11 @@ main { position: relative; z-index: 1; }
 .hint { margin: 0; font-size: 15px; color: var(--muted); min-height: 1.5em; }
 .again { min-height: 44px; padding: 0 18px; border-radius: 99px; border: 1px solid var(--line); font-size: 14px; color: var(--muted); align-self: flex-start; }
 .again:hover { color: var(--fg); border-color: var(--fg); }
+/* что это даёт репетитору — стоит под заголовком сцены */
+.gain { display: flex; flex-direction: column; gap: 8px; max-width: 40ch; }
+.gain__title { margin: 0; font: 400 clamp(19px, 1.6vw, 23px)/1.25 var(--font-display); letter-spacing: -0.02em; color: var(--fg); text-wrap: balance; }
+.gain__text { margin: 0; font: 400 16px/1.5 var(--font-body); letter-spacing: 0; color: var(--muted); text-wrap: pretty; }
+@media (max-width: 900px) { .gain__text { font-size: 15px; } }
 
 /* 07:00 */
 .s0 {
@@ -284,6 +289,9 @@ main { position: relative; z-index: 1; }
 }
 .cap--a { opacity: 0; }
 .cap__note { margin: 14px 0 0; max-width: 30ch; font: 400 15px/1.45 var(--font-body); letter-spacing: 0; color: var(--muted); text-wrap: pretty; }
+.cap .gain { margin-top: 14px; gap: 6px; max-width: none; }
+.cap .gain__title { font-size: 18px; }
+.cap .gain__text { font-size: 15px; line-height: 1.45; }
 @media (max-width: 900px) {
   .cap { top: calc(env(safe-area-inset-top, 0px) + 112px); bottom: auto; display: block; right: var(--gutter); max-width: none; font-size: clamp(22px, 6vw, 30px); }
   .cap__note { font-size: 13.5px; margin-top: 8px; max-width: 46ch; }
@@ -704,18 +712,6 @@ main .reveal { will-change: transform; }
   .scene .phone { --pw: min(64vw, 42svh); }
 }
 
-/* 10:00 — что видно в календаре */
-.legend { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 12px; text-align: left; font-size: 15px; color: var(--muted); }
-.legend li { display: flex; align-items: center; gap: 14px; }
-.legend b { color: var(--fg); font-weight: 500; }
-.lg { flex: none; width: 56px; height: 26px; display: grid; place-items: center; }
-.lg-dots { display: flex; justify-content: center; gap: 3px; }
-.lg-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--fg); }
-.lg-done { border-radius: 8px; background: linear-gradient(180deg, rgba(28, 116, 70, 0.22), rgba(28, 116, 70, 0.06)); box-shadow: inset 0 0 0 1px rgba(28, 116, 70, 0.35); }
-.lg-badge { padding: 0 6px; border-radius: 7px; font-size: 12px; font-weight: 600; color: #1c7446; background: rgba(28, 116, 70, 0.12); }
-.lg-off { border-radius: 8px; background: repeating-linear-gradient(135deg, rgba(11, 12, 14, 0.04) 0 4px, rgba(11, 12, 14, 0.14) 4px 7px); box-shadow: inset 0 0 0 1px var(--line); }
-@media (max-width: 900px) { .legend { font-size: 14px; gap: 10px; } }
-
 /* мост между утром и днём */
 .bridge { position: relative; min-height: 70svh; display: grid; place-items: center; padding: 80px var(--gutter); text-align: center; }
 .bridge::before {
@@ -730,8 +726,7 @@ main .reveal { will-change: transform; }
 .s2 { overflow-x: clip; min-height: 100svh; padding: clamp(90px, 12vh, 140px) var(--gutter) 80px; display: flex; flex-direction: column; align-items: center; gap: clamp(28px, 4vw, 44px); }
 .s2__head { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .s2__head .h { max-width: 18ch; }
-.s2__lead { margin: 0; max-width: 52ch; font-size: 17px; line-height: 1.5; color: var(--muted); text-wrap: balance; }
-.s2__lead b { color: var(--fg); font-weight: 500; }
+.s2__head .gain { max-width: 46ch; }
 .s2 .again { align-self: center; }
 .duo { display: flex; align-items: flex-start; justify-content: center; gap: clamp(14px, 5vw, 90px); width: 100%; }
 .duo figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -739,7 +734,7 @@ main .reveal { will-change: transform; }
 .duo figcaption b { font: 400 12px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .duo figcaption span { font-size: 14px; color: var(--muted); }
 .duo .phone { --pw: min(24vw, 29svh, 300px); }
-@media (max-width: 700px) { .duo .phone { --pw: 43vw; } .duo figcaption span { font-size: 12px; } .s2__lead { font-size: 15px; } }
+@media (max-width: 700px) { .duo .phone { --pw: 43vw; } .duo figcaption span { font-size: 12px; } }
 .flyer {
   position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none;
   padding: 8px 14px; border-radius: 99px; background: var(--sun); color: var(--sun-ink);
@@ -785,7 +780,8 @@ main .reveal { will-change: transform; }
 .sun--set { top: 112%; }
 /* без анимации закатное солнце стоит под сценой, и край сцены резал его свечение по прямой */
 html:not(.anim) .sun--set { display: none; }
-.cap--21 { top: auto; bottom: 12svh; justify-content: flex-end; max-width: 14ch; }
+/* подпись растёт вверх: выше 6svh на узком окне она подходила к сообщению Telegram */
+.cap--21 { top: auto; bottom: 6svh; justify-content: flex-end; max-width: 14ch; }
 .stage--21 .phone { left: 62%; }
 @media (max-width: 900px) {
   .moon { left: 86%; top: 35%; width: 52px; box-shadow: inset -11px -4px 0 0 #eef0f4; }
@@ -812,6 +808,17 @@ html:not(.anim) .sun--set { display: none; }
   .tgmsg__btn { padding: 7px 12px; font-size: 13px; }
   html:not(.anim) .tgmsg { display: none; } /* без анимации подпись остаётся, сообщению места нет */
 }
+
+/* польза сверх экономии времени: карточки одного размера */
+.why { padding: clamp(80px, 12vh, 140px) calc(var(--gutter) + 110px) 40px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.why__title { margin: 0; max-width: 18ch; font: 300 clamp(32px, 4.4vw, 60px)/1.08 var(--font-display); letter-spacing: -0.04em; text-wrap: balance; }
+.why__sub { margin: 0 0 12px; max-width: 40ch; font-size: 17px; line-height: 1.5; color: var(--muted); text-wrap: balance; }
+.why__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 12px; width: min(100%, 1000px); text-align: left; }
+.why__list li { display: flex; flex-direction: column; gap: 8px; padding: 22px 22px 20px; border-radius: 22px; border: 1px solid var(--line); background: color-mix(in oklab, var(--bubble) 70%, transparent); }
+.why__list b { font: 400 19px/1.25 var(--font-display); letter-spacing: -0.02em; }
+.why__list span { font-size: 15px; line-height: 1.45; color: var(--muted); }
+@media (max-width: 900px) { .why { padding-inline: var(--gutter); } .why__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .why__list { grid-template-columns: 1fr; } .why__list li { padding: 18px 18px 16px; } .why__sub { font-size: 16px; } }
 
 /* 22:00 — финал */
 .s22 { position: relative; min-height: 100svh; padding: clamp(110px, 16vh, 180px) calc(var(--gutter) + 110px) 60px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 28px; }
@@ -886,6 +893,7 @@ html.lite, .lite .app { transition: none; }
   font: 300 clamp(30px, 4vw, 58px)/1.06 var(--font-display); letter-spacing: -0.04em;
 }
 .lite .cap__note { display: block; margin: 14px auto 0; max-width: 34ch; font-size: 15px; }
+.lite .cap .gain { margin: 16px auto 0; max-width: 34ch; }
 .lite .stage .phone { position: relative; left: auto; top: auto; margin: 0; --pw: min(64vw, 42svh, 300px); }
 /* 08:00: заголовок «раньше», телефон — чаты превращаются в заявки, под ним «теперь» */
 .lite .s1 .cap--a { order: 0; opacity: 1; }
@@ -992,7 +1000,12 @@ html.lite, .lite .app { transition: none; }
     <div class="stage" id="stage">
       <div class="sun" id="sun" aria-hidden="true"></div>
       <p class="cap cap--a" id="cap-a">Раньше утро начиналось с&nbsp;переписки.</p>
-      <p class="cap cap--b" id="cap-b">Теперь всё само ложится в&nbsp;заявки.</p>
+      <div class="cap cap--b" id="cap-b">Теперь всё само ложится в&nbsp;заявки.
+        <div class="gain">
+          <p class="gain__title">Начните утро с&nbsp;плана на&nbsp;день</p>
+          <p class="gain__text">Запросы на&nbsp;запись и&nbsp;перенос собраны в&nbsp;одном месте. Разберите их&nbsp;в&nbsp;удобное время&nbsp;— меньше переключений между чатами.</p>
+        </div>
+      </div>
 
       <div class="bubbles" id="bubbles" aria-hidden="true">
         <span class="bubble" data-x="22" data-y="16" data-r="-5" data-mx="28" data-my="0"><small>Мама Сони</small>А можно перенести на&nbsp;четверг?</span>
@@ -1059,13 +1072,10 @@ html.lite, .lite .app { transition: none; }
   <section class="scene s10" id="s10" aria-labelledby="s10-title">
     <div class="scene__text">
       <h2 class="h" id="s10-title">Календарь, в&nbsp;котором видно всё</h2>
-      <p class="hint" id="s10-hint" aria-live="polite">Нажмите на&nbsp;любой день недели.</p>
-      <ul class="legend">
-        <li><span class="lg lg-dots" aria-hidden="true"><i></i><i></i><i></i></span><span><b>Точки</b> — сколько занятий в&nbsp;этот день</span></li>
-        <li><span class="lg lg-done" aria-hidden="true"></span><span><b>Зелёная карточка</b> — занятие проведено</span></li>
-        <li><span class="lg lg-badge" aria-hidden="true">придёт</span><span><b>Ответ ученика и&nbsp;оплата</b> — прямо на&nbsp;карточке</span></li>
-        <li><span class="lg lg-off" aria-hidden="true"></span><span><b>Штриховка</b> — ваш выходной</span></li>
-      </ul>
+      <div class="gain">
+        <p class="gain__title">Меньше путаницы между уроками</p>
+        <p class="gain__text">Сразу видно время занятий, кто подтвердил приход и&nbsp;какие уроки оплачены. Проще планировать день и&nbsp;готовиться к&nbsp;преподаванию.</p>
+      </div>
     </div>
     <div class="phone reveal">
       <div class="screen" data-theme="light"><div class="app">
@@ -1094,7 +1104,10 @@ html.lite, .lite .app { transition: none; }
   <section class="s2" id="s2" aria-labelledby="s2-title">
     <header class="s2__head">
       <h2 class="h" id="s2-title">Одно приложение&nbsp;— два кабинета</h2>
-      <p class="s2__lead">У&nbsp;вас&nbsp;— <b>расписание, заявки и&nbsp;оплаты</b> всех учеников. У&nbsp;ученика&nbsp;— только <b>свои занятия, задания и&nbsp;баланс</b>. Ставить ничего не&nbsp;нужно: оба открывают Lessa в&nbsp;Telegram.</p>
+      <div class="gain">
+        <p class="gain__title">Меньше вопросов, на&nbsp;которые вы&nbsp;уже отвечали</p>
+        <p class="gain__text">Ученик сам проверяет время урока, домашнее задание и&nbsp;остаток занятий. У&nbsp;вас больше времени на&nbsp;подготовку и&nbsp;работу с&nbsp;ним. Ставить ничего не&nbsp;нужно: оба открывают Lessa в&nbsp;Telegram.</p>
+      </div>
       <p class="hint" id="hint" aria-live="polite">Нажмите «Приду» на&nbsp;телефоне ученика.</p>
     </header>
     <div class="duo">
@@ -1198,6 +1211,10 @@ html.lite, .lite .app { transition: none; }
   <section class="scene s19" id="s19" aria-labelledby="s19-title">
     <div class="scene__text">
       <h2 class="h" id="s19-title">Оплата без «сколько я&nbsp;должна?»</h2>
+      <div class="gain">
+        <p class="gain__title">Обсуждайте оплату с&nbsp;уверенностью</p>
+        <p class="gain__text">Вы&nbsp;подтверждаете перевод, а&nbsp;Lessa ведёт баланс занятий. Вам и&nbsp;родителю проще разобраться, что оплачено и&nbsp;сколько уроков осталось.</p>
+      </div>
       <p class="hint" id="s19-hint" aria-live="polite">Нажмите «Оплатить» у&nbsp;пакета — от&nbsp;имени родителя.</p>
       <button type="button" class="again" id="s19-again" hidden>Ещё раз</button>
     </div>
@@ -1246,7 +1263,10 @@ html.lite, .lite .app { transition: none; }
       <div class="sun sun--set" id="sun-set" aria-hidden="true"></div>
       <div class="moon" id="moon" aria-hidden="true"></div>
       <div class="cap cap--21" id="cap21">Домашнее задание&nbsp;— за&nbsp;минуту
-        <p class="cap__note">Ученик видит его в&nbsp;приложении, а&nbsp;в&nbsp;Telegram ему сразу приходит сообщение с&nbsp;кнопкой «Открыть задания».</p>
+        <div class="gain">
+          <p class="gain__title">Задали один раз&nbsp;— ученик найдёт сам</p>
+          <p class="gain__text">Задание, файлы и&nbsp;срок доступны в&nbsp;кабинете. Реже приходится искать материалы в&nbsp;переписке и&nbsp;отправлять их&nbsp;повторно.</p>
+        </div>
       </div>
       <div class="phone" id="ph-night" aria-hidden="true">
         <div class="screen" id="screen-night" data-theme="dark"><div class="app">
@@ -1309,10 +1329,24 @@ html.lite, .lite .app { transition: none; }
     </div>
   </section>
 
+  <!-- польза сверх экономии времени -->
+  <section class="why" id="why" aria-labelledby="why-title">
+    <h2 class="why__title" id="why-title">Не&nbsp;только экономия времени</h2>
+    <p class="why__sub">Что Lessa меняет в&nbsp;работе с&nbsp;учениками и&nbsp;родителями.</p>
+    <ul class="why__list">
+      <li><b>Выглядите как профессионал</b><span>Свой кабинет для учеников и&nbsp;родителей&nbsp;— уровень хорошей школы.</span></li>
+      <li><b>Ученики не&nbsp;уходят к&nbsp;другим</b><span>Свободное время видно сразу&nbsp;— заявку оставят, даже пока вы&nbsp;на&nbsp;уроке.</span></li>
+      <li><b>Переводы под контролем</b><span>Ученик отмечает перевод, вы&nbsp;подтверждаете&nbsp;— баланс считается сам.</span></li>
+      <li><b>Чеки самозанятого</b><span>Все оплаты за&nbsp;месяц и&nbsp;срок чеков&nbsp;— на&nbsp;одном экране.</span></li>
+      <li><b>Меньше пропусков</b><span>Накануне ученик отвечает «Приду» или «Пропущу»&nbsp;— вы&nbsp;знаете заранее.</span></li>
+      <li><b>Ничего не&nbsp;теряется</b><span>Баланс, оплаты и&nbsp;задания&nbsp;— в&nbsp;кабинете, а&nbsp;не&nbsp;в&nbsp;переписке.</span></li>
+    </ul>
+  </section>
+
   <!-- 22:00 -->
   <section class="s22" id="s22" aria-labelledby="s22-title">
     <h2 class="s22__title" id="s22-title">Вечер свободен<span class="ball" aria-hidden="true"></span></h2>
-    <p class="s22__sub">Переписку, напоминания и&nbsp;оплаты Lessa взяла на&nbsp;себя. Попробуйте на&nbsp;своих учениках.</p>
+    <p class="s22__sub">Расписание, задания и&nbsp;баланс ученики видят сами&nbsp;— и&nbsp;после ваших уроков. Меньше поводов возвращаться к&nbsp;переписке, больше вечера для себя.</p>
     <ul class="calm" aria-label="Почему не страшно попробовать">
       <li><b>Пара минут на&nbsp;подключение</b><span>Имя и&nbsp;предметы&nbsp;— и&nbsp;кабинет готов. Первые 7&nbsp;дней бесплатно, карта не&nbsp;нужна.</span></li>
       <li><b>Ничего не&nbsp;спишется само</b><span>Платите картой или по&nbsp;СБП&nbsp;— и&nbsp;только тогда, когда решите продлить.</span></li>
@@ -1388,19 +1422,13 @@ html.lite, .lite .app { transition: none; }
   /* ---------- 10:00: календарь недели ---------- */
   const ok = (t) => ["badge-ok", t], warn = (t) => ["badge-warn", t];
   const WEEK = [
-    { name: "пн", num: "28", hint: "Понедельник позади: оба занятия проведены и&nbsp;оплачены.",
-      items: [{ t: "16:00", e: "17:00", who: "Анна", av: 0, done: true, b: [ok("оплачено")] }, { t: "18:00", e: "19:00", who: "Полина", av: 0, done: true, b: [ok("оплачено")] }] },
-    { name: "вт", num: "29", hint: "Вторник: Артём ещё не&nbsp;оплатил — это видно сразу, без поиска по&nbsp;чатам.",
-      items: [{ t: "16:00", e: "17:00", who: "Артём", av: 3, done: true, b: [warn("не оплачено")] }, { t: "17:00", e: "18:00", who: "Максим", av: 3, done: true, b: [ok("оплачено")] }] },
-    { name: "ср", num: "30", today: true, hint: "Сегодня: Артём и&nbsp;Полина уже ответили «Приду», Соня ещё думает.",
-      items: [{ t: "14:00", e: "15:00", who: "Артём", av: 3, b: [ok("придёт"), ok("оплачено")] }, { t: "16:00", e: "17:00", who: "Соня", av: 4, b: [] }, { t: "18:00", e: "19:00", who: "Полина", av: 0, b: [ok("придёт"), ok("оплачено")] }] },
-    { name: "чт", num: "01", hint: "Завтра два занятия — напоминания ученикам уйдут сами.",
-      items: [{ t: "16:00", e: "17:00", who: "Анна", av: 0, b: [] }, { t: "17:00", e: "18:00", who: "Максим", av: 3, b: [] }] },
-    { name: "пт", num: "02", hint: "Пятница: Дмитрий просит перенести своё занятие — запрос ждёт в&nbsp;«Заявках».",
-      items: [{ t: "11:00", e: "12:00", who: "Дмитрий", av: 2, b: [["badge-neutral", "просит перенос"]] }, { t: "17:00", e: "18:00", who: "Полина", av: 0, b: [] }] },
-    { name: "сб", num: "03", hint: "Суббота: одно занятие с&nbsp;Верой.",
-      items: [{ t: "11:00", e: "12:00", who: "Вера", av: 4, b: [] }] },
-    { name: "вс", num: "04", off: true, hint: "Воскресенье — выходной: на&nbsp;это время ученики не&nbsp;смогут записаться.", items: [] },
+    { name: "пн", num: "28", items: [{ t: "16:00", e: "17:00", who: "Анна", av: 0, done: true, b: [ok("оплачено")] }, { t: "18:00", e: "19:00", who: "Полина", av: 0, done: true, b: [ok("оплачено")] }] },
+    { name: "вт", num: "29", items: [{ t: "16:00", e: "17:00", who: "Артём", av: 3, done: true, b: [warn("не оплачено")] }, { t: "17:00", e: "18:00", who: "Максим", av: 3, done: true, b: [ok("оплачено")] }] },
+    { name: "ср", num: "30", today: true, items: [{ t: "14:00", e: "15:00", who: "Артём", av: 3, b: [ok("придёт"), ok("оплачено")] }, { t: "16:00", e: "17:00", who: "Соня", av: 4, b: [] }, { t: "18:00", e: "19:00", who: "Полина", av: 0, b: [ok("придёт"), ok("оплачено")] }] },
+    { name: "чт", num: "01", items: [{ t: "16:00", e: "17:00", who: "Анна", av: 0, b: [] }, { t: "17:00", e: "18:00", who: "Максим", av: 3, b: [] }] },
+    { name: "пт", num: "02", items: [{ t: "11:00", e: "12:00", who: "Дмитрий", av: 2, b: [["badge-neutral", "просит перенос"]] }, { t: "17:00", e: "18:00", who: "Полина", av: 0, b: [] }] },
+    { name: "сб", num: "03", items: [{ t: "11:00", e: "12:00", who: "Вера", av: 4, b: [] }] },
+    { name: "вс", num: "04", off: true, items: [] },
   ];
   const svg = (id, size) => `<svg class="i" width="${size}" height="${size}"><use href="#${id}"/></svg>`;
   const lessonHtml = (l) =>
@@ -1416,20 +1444,19 @@ html.lite, .lite .app { transition: none; }
     `<span class="day-name">${d.name}</span><span class="day-num">${d.num}</span>` +
     (d.items.length ? `<span class="day-dots">${"<i></i>".repeat(d.items.length)}</span>` : "") + "</button>").join("");
   const days = [...calWeek.children];
-  const showDay = (i, fromClick) => {
+  const showDay = (i) => {
     calOn = i;
     days.forEach((b, k) => { b.classList.toggle("day-on", k === i); b.setAttribute("aria-pressed", String(k === i)); });
     const d = WEEK[i];
     calList.innerHTML = d.off ? offHtml : d.items.map(lessonHtml).join("");
-    if (fromClick) $("s10-hint").innerHTML = d.hint;
   };
   calWeek.addEventListener("click", (e) => {
     const b = e.target.closest(".day");
     if (!b) return;
     days.forEach((x) => x.classList.remove("ping"));
-    showDay(Number(b.dataset.i), true);
+    showDay(Number(b.dataset.i));
   });
-  showDay(calOn, false);
+  showDay(calOn);
 
   /* ---------- 15:00: ученик отвечает — репетитор видит ---------- */
   const stCard = $("st-card"), tuCard = $("tu-card"), stConfirm = $("st-confirm");
@@ -1644,7 +1671,7 @@ html.lite, .lite .app { transition: none; }
       e.target.classList.add("in");
       reveal.unobserve(e.target);
     }), { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
-    document.querySelectorAll(".stage .phone, .stage--17 .cap, .stage--21 .cap, .scene__text, .scene > .phone, .s19__body, .bridge p, .s2__head, .duo, .s22 > *")
+    document.querySelectorAll(".stage .phone, .stage--17 .cap, .stage--21 .cap, .scene__text, .scene > .phone, .s19__body, .bridge p, .s2__head, .duo, .s22 > *, .why > *")
       .forEach((el) => { el.classList.add("rv"); reveal.observe(el); });
   };
 
