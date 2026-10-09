@@ -1,0 +1,75 @@
+# Сторож Lessa: каждые ~5 минут заходит на адрес проверки приложения и пишет
+# владельцу в Telegram, когда приложение упало и когда снова заработало.
+# Сообщения — только при смене состояния (и напоминание раз в час, пока лежит).
+# Нужны два секрета репозитория: ALERT_BOT_TOKEN и ALERT_CHAT_ID (см. README).
+# Без них сторож ничего не делает.
+name: Проверка Lessa
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lessa-health
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      URL: https://app.getlessa.ru/healthz
+      BOT_TOKEN: ${{ secrets.ALERT_BOT_TOKEN }}
+      CHAT_ID: ${{ secrets.ALERT_CHAT_ID }}
+    steps:
+      - name: Прошлое состояние
+        uses: actions/cache/restore@v4
+        with:
+          path: state.txt
+          key: lessa-health-none
+          restore-keys: lessa-health-
+
+      - name: Проверка и сообщение
+        run: |
+          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
+            echo "::notice::Секреты ALERT_BOT_TOKEN и ALERT_CHAT_ID не заданы — сторож выключен."
+            exit 0
+          fi
+          send() {
+            curl -s --max-time 20 "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${CHAT_ID}" --data-urlencode "text=$1" > /dev/null || true
+          }
+          ok=0; answer=""
+          for try in 1 2 3; do
+            code=$(curl -s -o body.txt -w '%{http_code}' --max-time 20 "$URL" || echo 000)
+            answer=$(head -c 120 body.txt 2>/dev/null | tr -d '\n')
+            if [ "$code" = "200" ]; then ok=1; break; fi
+            [ "$try" -lt 3 ] && sleep 15
+          done
+          prev=$(cat state.txt 2>/dev/null || echo up)
+          if [ "$ok" = "1" ]; then
+            case "$prev" in
+              down:*) send "✅ Lessa снова работает ($URL)." ;;
+            esac
+            echo up > state.txt
+          else
+            n=1
+            case "$prev" in down:*) n=$(( ${prev#down:} + 1 )) ;; esac
+            if [ "$n" -eq 1 ]; then
+              send "🔴 Lessa не отвечает ($URL): код ${code} ${answer}"
+            elif [ $(( (n - 1) % 12 )) -eq 0 ]; then
+              send "🔴 Lessa всё ещё не отвечает (уже около $(( n * 5 / 60 )) ч.)."
+            fi
+            echo "down:$n" > state.txt
+          fi
+
+      - name: Сохранить состояние
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state.txt
+          key: lessa-health-${{ github.run_id }}
