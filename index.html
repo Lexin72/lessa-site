@@ -852,6 +852,9 @@ html:not(.anim) .sun--set { display: none; }
 .reviews li { display: flex; flex-direction: column; gap: 12px; padding: 22px 20px; border-radius: 22px; border: 1px solid var(--line); background: color-mix(in oklab, var(--bubble) 70%, transparent); }
 .reviews q { font: 300 17px/1.45 var(--font-display); quotes: "«" "»"; }
 .reviews cite { font-style: normal; font-size: 14px; color: var(--muted); }
+.reviews .review-stars { color: var(--sun); letter-spacing: 2px; font-size: 14px; }
+.tg-links { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+.tg-links a { color: var(--fg); text-decoration: underline; text-decoration-color: color-mix(in oklab, var(--sun) 70%, transparent); text-underline-offset: 3px; }
 .s22__price { margin: 0; font: 300 clamp(18px, 1.8vw, 22px)/1.3 var(--font-display); color: var(--muted); }
 .s22__price b { font-weight: 500; color: var(--fg); }
 .s22__cta { margin-top: 4px; display: flex; align-items: center; gap: 28px; }
@@ -1369,6 +1372,7 @@ html.lite, .lite .app { transition: none; }
         <p class="qr-note">Или наведите камеру телефона на&nbsp;код.</p>
       </div>
     </div>
+    <p class="tg-links">Новости и&nbsp;советы&nbsp;— в&nbsp;канале <a href="https://t.me/lessa_channel" target="_blank" rel="noopener">@lessa_channel</a>. Вопросы&nbsp;— в&nbsp;поддержку <a href="https://t.me/s1vlerboy" target="_blank" rel="noopener">@s1vlerboy</a>.</p>
   </section>
 
 </main>
@@ -1379,6 +1383,8 @@ html.lite, .lite .app { transition: none; }
     <a href="offer/#contacts">Контакты</a>
     <a href="privacy/">Политика обработки данных</a>
     <a href="consent/">Согласие</a>
+    <a href="https://t.me/lessa_channel" target="_blank" rel="noopener">Канал Lessa</a>
+    <a href="https://t.me/s1vlerboy" target="_blank" rel="noopener">Поддержка</a>
   </nav>
   <span>Сделано LEONCHEX</span>
 </footer>
@@ -1589,18 +1595,29 @@ html.lite, .lite .app { transition: none; }
   const JOIN_LINK = `https://t.me/${LESSA_BOT}?start=tutor`;
   document.querySelectorAll("[data-join-link]").forEach((a) => { a.href = JOIN_LINK; });
 
-  /* ---------- Отзывы: только настоящие, от репетиторов, которые пользуются Lessa.
-     Пока их нет, блок скрыт. Формат: { text: "…", who: "Мария, репетитор английского" } ---------- */
-  const REVIEWS = [];
-  if (REVIEWS.length) {
-    const list = $("reviews");
-    REVIEWS.forEach((r) => {
-      const li = document.createElement("li"), q = document.createElement("q"), cite = document.createElement("cite");
-      q.textContent = r.text; cite.textContent = r.who;
-      li.append(q, cite); list.append(li);
-    });
-    list.hidden = false;
-  }
+  /* ---------- Отзывы: только настоящие — их оставляют репетиторы в приложении, а
+     публикует владелец Lessa в админке. Берутся с сервера приложения; нет отзывов
+     или сервер не ответил — блок остаётся скрытым. Текст — только через textContent. ---------- */
+  const REVIEWS_URL = "https://app.getlessa.ru/public/reviews";
+  const REVIEWS_SHOWN = 6;
+  fetch(REVIEWS_URL, { credentials: "omit" })
+    .then((r) => (r.ok ? r.json() : { reviews: [] }))
+    .then((data) => {
+      const reviews = (data && Array.isArray(data.reviews) ? data.reviews : []).slice(0, REVIEWS_SHOWN);
+      if (!reviews.length) return;
+      const list = $("reviews");
+      reviews.forEach((r) => {
+        const li = document.createElement("li"), stars = document.createElement("span");
+        const q = document.createElement("q"), cite = document.createElement("cite");
+        const rating = Math.max(1, Math.min(5, Number(r.rating) || 5));
+        stars.className = "review-stars"; stars.textContent = "★".repeat(rating); stars.setAttribute("aria-label", `Оценка ${rating} из 5`);
+        q.textContent = String(r.text || ""); cite.textContent = String(r.author || "");
+        li.append(stars, q, cite); list.append(li);
+      });
+      list.hidden = false;
+      if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+    })
+    .catch(() => {});
 
   /* ---------- 22:00: QR ---------- */
   if (window.QRCode) {
